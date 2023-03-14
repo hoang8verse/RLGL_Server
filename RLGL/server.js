@@ -1,10 +1,12 @@
 
 
-const otpGenerator = require('otp-generator');
-var WebSocketServer = require('websocket').server;
-const RLGLSocket = (server) => {
-    console.log(" server ===============  " , server)
 
+const RLGLSocket = (server) => {
+    // console.log(" server ===============  " , server)
+
+    const otpGenerator = require('otp-generator');
+    var WebSocketServer = require('websocket').server;
+    
     wsServer = new WebSocketServer({
         httpServer: server,
         // You should not use autoAcceptConnections for production
@@ -72,12 +74,13 @@ const RLGLSocket = (server) => {
         // remove echo-protocol
         var connection = request.accept("", request.origin);
         // var connection = request.accept( request.origin);
-        console.log((new Date()) + ' Connection accepted.');
-        const clientId = otpGenerator.generate(6, {
-            // digits: true,
-            upperCaseAlphabets: false,
-            specialChars: false,
-        });
+        console.log((new Date()) + ' request ------------   ' , request.key);
+        // const clientId = otpGenerator.generate(6, {
+        //     // digits: true,
+        //     upperCaseAlphabets: false,
+        //     specialChars: false,
+        // });
+        const clientId = request.key;
         console.log("clientId ===================   " ,clientId);
         const leave = room => {
             console.log("_room leave leave ===========  " , room)
