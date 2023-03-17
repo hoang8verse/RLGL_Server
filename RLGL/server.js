@@ -59,9 +59,16 @@ const RLGLSocket = (server) => {
         console.log("sliceString ============  " , sliceString);
         let arrPos = sliceString.split(',');
         // arrPos.forEach(element => {
-        //     element.replace('.', ',');
+        //     element.replace(" ", "");
+        //     parseFloat(element);
+        //     console.log("element ============  " , element);
         // });
-        return arrPos;
+        let strReturn = arrPos;
+        for (let index = 0; index < arrPos.length; index++) {
+            strReturn[index] = parseFloat(arrPos[index]);
+        }
+        
+        return strReturn;
       }
     wsServer.on('request', function(request) {
         if (!originIsAllowed(request.origin)) {
@@ -155,7 +162,8 @@ const RLGLSocket = (server) => {
                     if(host == "1"){
                         _room = room;
                     } else {
-                        _room = room.substring(0,room.length-1);
+                        // _room = room.substring(0,room.length-1);
+                        _room = room;
                         if(!rooms[_room]){
                             let params = {
                                 event : "failJoinRoom",
@@ -204,7 +212,12 @@ const RLGLSocket = (server) => {
                     player.id = clientId;
                     // player.playerName = "Player " + Object.keys(rooms[room]).length;
                     player.playerName = data.playerName;
+                    player.userAppId = data.userAppId;
+                    player.avatar = data.avatar;
                     player.room = room;
+                    let ranGender = Math.floor(Math.random() * 5) % 2 == 0 ? "0" : "1";
+                    console.log( "  ranGender ----------- " , ranGender)
+                    player.gender = ranGender;
                     console.log( "  new player created  ----------- " , player)
                     // let _pos = parseVector3(data.pos);
                     // console.log("pos :   " , _pos);
@@ -226,6 +239,8 @@ const RLGLSocket = (server) => {
                         event : "joinLobbyRoom",
                         clientId : clientId,
                         playerName : player.playerName,
+                        userAppId : player.userAppId,
+                        avatar : player.avatar,
                         players : players,
                         isHost : player.isHost,
                     }
@@ -259,15 +274,12 @@ const RLGLSocket = (server) => {
                     }
                     if(! rooms[room][clientId]) rooms[room][clientId] = connection; // join the room
     
-                    var player = new Player();
-                    player.id = clientId;
-                    // player.playerName = "Player " + Object.keys(rooms[room]).length;
-                    player.playerName = data.playerName;
-                    player.room = room;
-                    console.log( "  new player created  ----------- " , player)
+                    var player = rooms[room][clientId]["player"];
                     let _pos = parseVector3(data.pos);
                     console.log("pos :   " , _pos);
                     player.position = _pos;
+
+                    console.log( "  new player created  ----------- " , player)
     
                     rooms[room][clientId]["player"] = player;// save player in room array
                     let players = [];
@@ -285,6 +297,8 @@ const RLGLSocket = (server) => {
                         event : "joinRoom",
                         clientId : clientId,
                         playerName : player.playerName,
+                        userAppId : player.userAppId,
+                        avatar : player.avatar,
                         players : players,
                         isHost : player.isHost,
                     }
