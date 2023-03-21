@@ -26,23 +26,39 @@ app.use(
 //     console.log(`App running on port ${port}.`)
 //   })
 
-
-
 var http = require('http');
 var https = require('https');
+const fs = require('fs');
 
 var server = http.createServer(function(request, response) {
     console.log((new Date()) + ' Received request for ' + request.url);
     response.writeHead(404);
     response.end();
 });
-// const server = https.createServer({
-//     cert: fs.readFileSync('rootSSL.pem'),
-//     key: fs.readFileSync('key.pem')
-//   });
 
-server.listen(port, function() {
-    console.log((new Date()) + ' Server is listening on port ' + port);
+// let path_key = 'private.key';
+// let path_cert = 'server.crt';
+let path_cert = '/etc/letsencrypt/live/rlgl2-api.brandgames.vn/fullchain.pem';
+let path_key = '/etc/letsencrypt/live/rlgl2-api.brandgames.vn/privkey.pem';
+
+const options = {
+  key: fs.readFileSync(path_key),
+  cert: fs.readFileSync(path_cert)
+};
+
+const serverSSL = https.createServer(options, function(request, response) {
+  // ... handle HTTPS requests ...
+  console.log((new Date()) + ' Received request for ' + request.url);
+  response.writeHead(404);
+  response.end();
 });
 
-RLGLSocket(server);
+
+// server.listen(port, function() {
+//     console.log((new Date()) + ' Server is listening on port ' + port);
+// });
+serverSSL.listen(port, function() {
+  console.log((new Date()) + ' Server is listening on port ' + port);
+});
+
+RLGLSocket(serverSSL);
