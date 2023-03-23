@@ -115,7 +115,7 @@ const RLGLSocket = (server) => {
                     Object.entries(rooms[room]).forEach(([, sock]) => {
                         console.log("leave leave sock aaaa ad=====  " , sock);
                         if(sock["player"]["id"] != clientId && sock["player"]["isSpectator"] == "0"){
-                            rooms[room][sock["player"]["id"]]["isHost"] = "1";
+                            rooms[room][sock["player"]["id"]]["player"]["isHost"] = "1";
                             checkNewHost = sock["player"]["id"];
                             return;
                         }
@@ -215,10 +215,11 @@ const RLGLSocket = (server) => {
                     player.userAppId = data.userAppId;
                     player.avatar = data.avatar;
                     player.room = room;
-                    player.isSpectator = data['isSpectator'];
-                    let ranGender = Math.floor(Math.random() * 5) % 2 == 0 ? "0" : "1";
-                    console.log( "  ranGender ----------- " , ranGender)
-                    player.gender = ranGender;
+                    player.isSpectator = data.isSpectator;
+                    player.gender = data.gender;
+                    // let ranGender = Math.floor(Math.random() * 5) % 2 == 0 ? "0" : "1";
+                    // console.log( "  ranGender ----------- " , ranGender)
+                    // player.gender = ranGender;
                     console.log( "  new player created  ----------- " , player)
                     // let _pos = parseVector3(data.pos);
                     // console.log("pos :   " , _pos);
@@ -303,6 +304,7 @@ const RLGLSocket = (server) => {
                         avatar : player.avatar,
                         players : players,
                         isHost : player.isHost,
+                        isSpectator : player.isSpectator,
                     }
                     let buffer = Buffer.from(JSON.stringify(params), 'utf8');
                     Object.entries(rooms[room]).forEach(([, sock]) => {
