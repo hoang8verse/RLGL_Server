@@ -317,6 +317,7 @@ const RLGLSocket = (server) => {
                 else if(meta === "startGame") {
     
                     console.log("startGame  data ===========  " , data)
+                    let maxTime = parseFloat(data.maxTime);
                     let params = {
                         event : "startGame",
                         clientId : clientId,
@@ -325,8 +326,30 @@ const RLGLSocket = (server) => {
                     console.log("startGame  buffer========  " , buffer)
                     // console.log("startGame  rooms[room]========  " , rooms[room])
                     Object.entries(rooms[room]).forEach(([, sock]) => {
+                        rooms[room][sock["player"]["id"]]["player"]["timer"] = maxTime;
                        sock.sendBytes(buffer)
                     });
+                }
+                else if(meta === "countDown") {
+    
+                    console.log("countDown  data ===========  " , data)
+                    setTimeout(() => {
+                        let timeCount = parseFloat(rooms[room][clientId]["player"]["timer"]);
+                        timeCount =  timeCount - 1;
+                        // console.log("timeCount  data ===========  " , timeCount)
+                        let params = {
+                            event : "countDown",
+                            clientId : clientId,
+                            timer : timeCount,
+                        }
+                        // console.log("countDown after  ==========  " , rooms[room][clientId]["player"])
+                        let buffer = Buffer.from(JSON.stringify(params), 'utf8');
+                        Object.entries(rooms[room]).forEach(([, sock]) => {
+                            rooms[room][sock["player"]["id"]]["player"]["timer"] = timeCount;
+                           sock.sendBytes(buffer)
+                        });
+                    }, 1000);
+
                 }
                 else if(meta === "moving") {
     
