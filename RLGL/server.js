@@ -24,7 +24,7 @@ const RLGLSocket = (server) => {
         
     const RoomStores = [];
     function getRoom(len, roomId = null) {
-        console.log("RoomStores before -------------  ", RoomStores)
+        // console.log("RoomStores before -------------  ", RoomStores)
         let roomRan = otpGenerator.generate(6, {
             // digits: true,
             upperCaseAlphabets: false,
@@ -111,13 +111,15 @@ const RLGLSocket = (server) => {
             }
             // otherwise simply leave the room
             else {
+                let isFindNewHost = false;
                 if(rooms[room][clientId]["player"]["isHost"] == "1"){
                     Object.entries(rooms[room]).forEach(([, sock]) => {
-                        console.log("leave leave sock aaaa ad=====  " , sock);
-                        if(sock["player"]["id"] != clientId && sock["player"]["isSpectator"] == "0"){
+                        // console.log("leave leave sock aaaa ad=====  " , sock["player"]);
+                        if(sock["player"]["id"] != clientId && !isFindNewHost){
                             rooms[room][sock["player"]["id"]]["player"]["isHost"] = "1";
                             checkNewHost = sock["player"]["id"];
-                            return;
+                            isFindNewHost = true;
+                            console.log(" new host ------  " , sock["player"]);
                         }
                     });
                 }
@@ -176,15 +178,25 @@ const RLGLSocket = (server) => {
     
                             return;
                         }
+                        else {
+                            Object.entries(rooms[_room]).forEach(([, sock]) => {
+                                
+                                if(sock.player.isStarted == "1"){
+                                    
+                                    let params = {
+                                        event : "failJoinRoom",
+                                        clientId : clientId,
+                                        room : _room,
+                                        message : "Room id : " + _room + " is not availiable! Please try again.",
+                                    }
+                                    let buffer = Buffer.from(JSON.stringify(params), 'utf8');
+                                    connection.sendBytes(buffer);
+                                    return;
+                                } 
+                            });
+                        }
                     }
-                    // console.log("_room nameeeeeeeeeee _room ===========  " , _room.length)
-                    // console.log("_room nameeeeeeeeeee adadadad ===========  " , room.length)
-                    // for (let index = 0; index < room.length; index++) {
-                    //     console.log(" roomm text id ===========  " , room[index])
-                    // }
-                    // if(_room == room){
-                    //     console.log("_room correct rooommmm adadadad ===========  " )
-                    // }
+                    
     
                     let params = {
                         event : "roomDetected",
@@ -198,7 +210,7 @@ const RLGLSocket = (server) => {
                 }
                 else if(meta === "joinLobby") {
     
-                    console.log(' rooms[room] before ========  ' , rooms);
+                    // console.log(' rooms[room] before ========  ' , rooms);
     
                     if(!rooms[room]){
                         rooms[room] = {}; // create the room
@@ -249,7 +261,7 @@ const RLGLSocket = (server) => {
                     }
                     let buffer = Buffer.from(JSON.stringify(params), 'utf8');
                     Object.entries(rooms[room]).forEach(([, sock]) => {
-                        console.log( "  sock ----------- " , sock.player)
+                        // console.log( "  sock ----------- " , sock.player)
     
                         sock.sendBytes(buffer);
                     });
@@ -281,7 +293,7 @@ const RLGLSocket = (server) => {
                     let _pos = parseVector3(data.pos);
                     console.log("pos :   " , _pos);
                     player.position = _pos;
-
+                    player.isStarted = "1";
                     console.log( "  new player created  ----------- " , player)
     
                     rooms[room][clientId]["player"] = player;// save player in room array
@@ -333,29 +345,20 @@ const RLGLSocket = (server) => {
                 else if(meta === "countDown") {
     
                     console.log("countDown  data ===========  " , data)
-                    setTimeout(() => {
-                        let timeCount = 1;
-                        if(rooms[room] && rooms[room][clientId]){
-                            timeCount = parseFloat(rooms[room][clientId]["player"]["timer"]);
-                        }
-                        
-                        timeCount =  timeCount - 1;
-                        // console.log("timeCount  data ===========  " , timeCount)
-                        let params = {
-                            event : "countDown",
-                            clientId : clientId,
-                            timer : timeCount,
-                        }
-                        // console.log("countDown after  ==========  " , rooms[room][clientId]["player"])
-                        let buffer = Buffer.from(JSON.stringify(params), 'utf8');
-                        if(rooms[room] && rooms[room][clientId]){
-                            Object.entries(rooms[room]).forEach(([, sock]) => {
-                                rooms[room][sock["player"]["id"]]["player"]["timer"] = timeCount;
-                               sock.sendBytes(buffer)
-                            });
-                        }
-
-                    }, 1000);
+                    let timeCount = parseInt(data.timer) - 1;
+                    let params = {
+                        event : "countDown",
+                        clientId : clientId,
+                        timer : timeCount,
+                    }
+                    // console.log("countDown after  ==========  " , rooms[room][clientId]["player"])
+                    let buffer = Buffer.from(JSON.stringify(params), 'utf8');
+                    if(rooms[room] && rooms[room][clientId]){
+                        Object.entries(rooms[room]).forEach(([, sock]) => {
+                            rooms[room][sock["player"]["id"]]["player"]["timer"] = timeCount;
+                           sock.sendBytes(buffer)
+                        });
+                    }
 
                 }
                 else if(meta === "moving") {

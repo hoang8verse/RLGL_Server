@@ -8,6 +8,7 @@ module.exports = class Player {
         this.room = "";
         this.position = [];
         this.isHost = "";
+        this.isStarted = "0";
         this.isSpectator = "0";
         this.playerStatus = "die";
         this.timer = 0;
