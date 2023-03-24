@@ -282,6 +282,7 @@ const RLGLSocket = (server) => {
                     console.log("gotoGame  buffer========  " , buffer)
                     // console.log("startGame  rooms[room]========  " , rooms[room])
                     Object.entries(rooms[room]).forEach(([, sock]) => {
+                        rooms[room][sock["player"]["id"]]["player"]["isStarted"] = "1";
                        sock.sendBytes(buffer)
                     });
                 }
