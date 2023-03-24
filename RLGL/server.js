@@ -405,7 +405,7 @@ const RLGLSocket = (server) => {
                 }
                 else if(meta === "playerWin") {
                     rooms[room][clientId]["player"]["playerStatus"] = "win";
-                    rooms[room][clientId]["player"]["timeWin"] = rooms[room][clientId]["player"]["timer"];
+                    rooms[room][clientId]["player"]["timeWin"] = parseInt(data.timeWin);
                     let params = {
                         event : "playerWin",
                         clientId : clientId,
