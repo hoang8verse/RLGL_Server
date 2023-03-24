@@ -160,6 +160,7 @@ const RLGLSocket = (server) => {
     
                     let host = data['host'];
                     // let _room = getRoom(parseInt(data.playerLen), room);
+                    let canJoin = true;
                     let _room;
                     if(host == "1"){
                         _room = room;
@@ -175,7 +176,7 @@ const RLGLSocket = (server) => {
                             }
                             let buffer = Buffer.from(JSON.stringify(params), 'utf8');
                             connection.sendBytes(buffer);
-    
+                            canJoin = false;
                             return;
                         }
                         else {
@@ -191,22 +192,26 @@ const RLGLSocket = (server) => {
                                     }
                                     let buffer = Buffer.from(JSON.stringify(params), 'utf8');
                                     connection.sendBytes(buffer);
+                                    canJoin = false;
                                     return;
                                 } 
                             });
                         }
                     }
                     
-    
-                    let params = {
-                        event : "roomDetected",
-                        clientId : clientId,
-                        room : _room,
+                    if(canJoin)
+                    {
+                        let params = {
+                            event : "roomDetected",
+                            clientId : clientId,
+                            room : _room,
+                        }
+                        // let bufferArr = str2ab(JSON.stringify(params));
+                        let buffer = Buffer.from(JSON.stringify(params), 'utf8');
+        
+                        connection.sendBytes(buffer);
                     }
-                    // let bufferArr = str2ab(JSON.stringify(params));
-                    let buffer = Buffer.from(JSON.stringify(params), 'utf8');
-    
-                    connection.sendBytes(buffer);
+                    
                 }
                 else if(meta === "joinLobby") {
     
