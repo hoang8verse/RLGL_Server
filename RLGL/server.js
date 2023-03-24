@@ -334,7 +334,11 @@ const RLGLSocket = (server) => {
     
                     console.log("countDown  data ===========  " , data)
                     setTimeout(() => {
-                        let timeCount = parseFloat(rooms[room][clientId]["player"]["timer"]);
+                        let timeCount = 1;
+                        if(rooms[room] && rooms[room][clientId]){
+                            timeCount = parseFloat(rooms[room][clientId]["player"]["timer"]);
+                        }
+                        
                         timeCount =  timeCount - 1;
                         // console.log("timeCount  data ===========  " , timeCount)
                         let params = {
@@ -344,10 +348,13 @@ const RLGLSocket = (server) => {
                         }
                         // console.log("countDown after  ==========  " , rooms[room][clientId]["player"])
                         let buffer = Buffer.from(JSON.stringify(params), 'utf8');
-                        Object.entries(rooms[room]).forEach(([, sock]) => {
-                            rooms[room][sock["player"]["id"]]["player"]["timer"] = timeCount;
-                           sock.sendBytes(buffer)
-                        });
+                        if(rooms[room] && rooms[room][clientId]){
+                            Object.entries(rooms[room]).forEach(([, sock]) => {
+                                rooms[room][sock["player"]["id"]]["player"]["timer"] = timeCount;
+                               sock.sendBytes(buffer)
+                            });
+                        }
+
                     }, 1000);
 
                 }
