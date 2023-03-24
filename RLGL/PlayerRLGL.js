@@ -11,6 +11,7 @@ module.exports = class Player {
         this.isSpectator = "0";
         this.playerStatus = "die";
         this.timer = 0;
+        this.timeWin = 0;
     }
     
 }
