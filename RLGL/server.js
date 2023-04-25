@@ -1,6 +1,7 @@
 
 
 
+
 const RLGLSocket = (server) => {
     // console.log(" server ===============  " , server)
 
@@ -50,6 +51,14 @@ const RLGLSocket = (server) => {
         return RoomStores[RoomStores.length - 1].room;
       }
     
+    const {enrichCDP, ingestCDP} = require('../CDP/cdp')
+
+    // enrichCDP({
+    //     user : {
+    //         userAppId : "3368637342326461234"
+    //     }
+    // });
+
     const rooms = {};
     var Player = require('./PlayerRLGL.js');
     
@@ -234,6 +243,8 @@ const RLGLSocket = (server) => {
                     player.room = room;
                     player.isSpectator = data.isSpectator;
                     player.gender = data.gender;
+                    player.phoneNumber = data.phoneNumber;
+                    player.followedOA = data.followedOA;
                     // let ranGender = Math.floor(Math.random() * 5) % 2 == 0 ? "0" : "1";
                     // console.log( "  ranGender ----------- " , ranGender)
                     // player.gender = ranGender;
@@ -270,6 +281,12 @@ const RLGLSocket = (server) => {
     
                         sock.sendBytes(buffer);
                     });
+
+                        enrichCDP({
+                            user : {
+                                userAppId : data.userAppId
+                            }
+                        });
     
                 }
                 else if(meta === "gotoGame") {
@@ -347,6 +364,25 @@ const RLGLSocket = (server) => {
                         rooms[room][sock["player"]["id"]]["player"]["timer"] = maxTime;
                        sock.sendBytes(buffer)
                     });
+
+                    // cdp event start game
+                    let player = rooms[room][clientId]["player"];
+                    let _state = {
+                        user : {
+                            userAppId : player.userAppId,
+                            userName : player.playerName,
+                            userPhone : player.phoneNumber,
+                            followedOA : player.followedOA == "0" ? false : true,
+                        }
+                    }
+                    let _data = {
+                        event : "startGame",
+                        eventState : {
+                            startGame : true
+                        },
+                        userEvent : "UserEvent"
+                    }
+                    ingestCDP(_state, _data);
                 }
                 else if(meta === "countDown") {
     
@@ -437,6 +473,39 @@ const RLGLSocket = (server) => {
                     }
                     let buffer = Buffer.from(JSON.stringify(params), 'utf8');
                     Object.entries(rooms[room]).forEach(([, sock]) => sock.sendBytes(buffer));
+
+
+
+                    // cdp event end game
+                    let rank = -1;
+                    let sortPlayers =  players.sort((a,b)=> b.timeWin - a.timeWin);
+                    for (let index = 0; index < sortPlayers.length; index++) {
+                        if(sortPlayers[index].id === clientId && sortPlayers[index].timeWin > 0){
+                            rank = index + 1;
+                        }                        
+                    }
+                    // console.log ("sortPlayers ===  " , sortPlayers)
+                    // console.log ("rank ===  " , rank)
+                    
+                    let player = rooms[room][clientId]["player"];
+                    let _state = {
+                        user : {
+                            userAppId : player.userAppId,
+                            userName : player.playerName,
+                            userPhone : player.phoneNumber,
+                            followedOA : player.followedOA == "0" ? false : true,
+                        }
+                    }
+                    let _data = {
+                        event : "endGame",
+                        eventState : {
+                            endGame : true,
+                            userRank : rank,
+                            timerWin : player.timeWin
+                        },
+                        userEvent : "UserEvent"
+                    }
+                    ingestCDP(_state, _data);
                 }
                 else if(meta === "leave") {
     
