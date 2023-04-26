@@ -53,7 +53,7 @@ const ingestCDP = async (state, data) => {
   // console.log(" data ===========  " , data)
   try {
     let request = state.user;
-    request.oaId = process.env.OA_APP_ID ?? ""; 
+    request.oaId = process.env.OA_APP_ID; 
     request.appId = process.env.ZALO_APP_ID;
     request.cdpaid = process.env.CDP_AID;
     request.orgId = process.env.ORG_ID;
