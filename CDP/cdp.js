@@ -35,11 +35,13 @@ const enrichCDP = async (state) => {
     );
     // console.log(" response ===========  " , response.data)
     if (response.data.success) {
-      Object.keys(response.data.result).forEach((key) => {
-        if (response.data.result[key] === null) {
-          delete response.data.result[key];
-        }
-      });
+      // Object.keys(response.data.result).forEach((key) => {
+      //   if (response.data.result[key] === null) {
+      //     delete response.data.result[key];
+      //   }
+      // });
+
+      console.log("enrichCDP response ===========  " , response.data)
     }
   } catch (error) {
     console.log("enrich cdp error", error);
@@ -51,7 +53,7 @@ const ingestCDP = async (state, data) => {
   // console.log(" data ===========  " , data)
   try {
     let request = state.user;
-    request.oaId = process.env.OA_APP_ID; 
+    request.oaId = process.env.OA_APP_ID ?? ""; 
     request.appId = process.env.ZALO_APP_ID;
     request.cdpaid = process.env.CDP_AID;
     request.orgId = process.env.ORG_ID;
@@ -78,6 +80,7 @@ const ingestCDP = async (state, data) => {
     // console.log(" response ===========  " , response.data)
     if (response.data.success) {
       // code response herr
+      console.log(" ingestCDP response ===========  " , response.data)
     }
 
 
