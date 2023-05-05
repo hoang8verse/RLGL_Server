@@ -282,11 +282,12 @@ const RLGLSocket = (server) => {
                         sock.sendBytes(buffer);
                     });
 
-                        enrichCDP({
-                            user : {
-                                userAppId : data.userAppId
-                            }
-                        });
+                    // send cdp
+                    enrichCDP({
+                        user : {
+                            userAppId : data.userAppId
+                        }
+                    });
     
                 }
                 else if(meta === "gotoGame") {
@@ -372,6 +373,7 @@ const RLGLSocket = (server) => {
                             userAppId : player.userAppId,
                             userName : player.playerName,
                             userPhone : player.phoneNumber,
+                            userAvatar : player.avatar,
                             followedOA : player.followedOA == "0" ? false : true,
                         }
                     }
@@ -474,8 +476,6 @@ const RLGLSocket = (server) => {
                     let buffer = Buffer.from(JSON.stringify(params), 'utf8');
                     Object.entries(rooms[room]).forEach(([, sock]) => sock.sendBytes(buffer));
 
-
-
                     // cdp event end game
                     let rank = -1;
                     let sortPlayers =  players.sort((a,b)=> b.timeWin - a.timeWin);
@@ -493,6 +493,7 @@ const RLGLSocket = (server) => {
                             userAppId : player.userAppId,
                             userName : player.playerName,
                             userPhone : player.phoneNumber,
+                            userAvatar : player.avatar,
                             followedOA : player.followedOA == "0" ? false : true,
                         }
                     }
