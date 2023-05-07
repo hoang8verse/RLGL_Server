@@ -168,6 +168,7 @@ const RLGLSocket = (server) => {
                     console.log("playerLen =========== binary  " , parseInt(data.playerLen))
     
                     let host = data['host'];
+                    let isSpectator = data['isSpectator'] == "1";
                     // let _room = getRoom(parseInt(data.playerLen), room);
                     let canJoin = true;
                     let _room;
@@ -189,22 +190,38 @@ const RLGLSocket = (server) => {
                             return;
                         }
                         else {
-                            Object.entries(rooms[_room]).forEach(([, sock]) => {
+                            if (Object.keys(rooms[room]).length >= 35 && isSpectator == false) {
+                                let params = {
+                                    event: "failJoinRoom",
+                                    clientId: clientId,
+                                    room: _room,
+                                    message: "Room id : " + _room + " is full players.",
+                                }
+
+                                let buffer = Buffer.from(JSON.stringify(params), 'utf8');
+                                connection.sendBytes(buffer);
+                                canJoin = false;
+                                return;
+                            }
+                            else {
+                                Object.entries(rooms[_room]).forEach(([, sock]) => {
                                 
-                                if(sock.player.isStarted == "1"){
-                                    
-                                    let params = {
-                                        event : "failJoinRoom",
-                                        clientId : clientId,
-                                        room : _room,
-                                        message : "Room id : " + _room + " is not availiable! Please try again.",
-                                    }
-                                    let buffer = Buffer.from(JSON.stringify(params), 'utf8');
-                                    connection.sendBytes(buffer);
-                                    canJoin = false;
-                                    return;
-                                } 
-                            });
+                                    if(sock.player.isStarted == "1"){
+                                        
+                                        let params = {
+                                            event : "failJoinRoom",
+                                            clientId : clientId,
+                                            room : _room,
+                                            message : "Room id : " + _room + " is not availiable! Please try again.",
+                                        }
+                                        let buffer = Buffer.from(JSON.stringify(params), 'utf8');
+                                        connection.sendBytes(buffer);
+                                        canJoin = false;
+                                        return;
+                                    } 
+                                });
+                            }
+                            
                         }
                     }
                     
