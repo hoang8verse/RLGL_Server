@@ -364,27 +364,30 @@ const RLGLSocket = (server) => {
                     Object.entries(rooms[room]).forEach(([, sock]) => {
                         rooms[room][sock["player"]["id"]]["player"]["timer"] = maxTime;
                        sock.sendBytes(buffer)
+
+                       // cdp event start game
+                       let player = rooms[room][sock["player"]["id"]]["player"];
+                       let _state = {
+                           user : {
+                               userAppId : player.userAppId,
+                               userName : player.playerName,
+                               userPhone : player.phoneNumber,
+                               userAvatar : player.avatar,
+                               followedOA : player.followedOA == "0" ? false : true,
+                           }
+                       }
+                       let _data = {
+                           event : "startGame",
+                           eventState : {
+                               startGame : true,
+                               roomID : room,
+                           },
+                           userEvent : "UserEvent"
+                       }
+                       ingestCDP(_state, _data);
                     });
 
-                    // cdp event start game
-                    let player = rooms[room][clientId]["player"];
-                    let _state = {
-                        user : {
-                            userAppId : player.userAppId,
-                            userName : player.playerName,
-                            userPhone : player.phoneNumber,
-                            userAvatar : player.avatar,
-                            followedOA : player.followedOA == "0" ? false : true,
-                        }
-                    }
-                    let _data = {
-                        event : "startGame",
-                        eventState : {
-                            startGame : true
-                        },
-                        userEvent : "UserEvent"
-                    }
-                    ingestCDP(_state, _data);
+                    
                 }
                 else if(meta === "countDown") {
     
@@ -474,39 +477,47 @@ const RLGLSocket = (server) => {
                         players :  players
                     }
                     let buffer = Buffer.from(JSON.stringify(params), 'utf8');
-                    Object.entries(rooms[room]).forEach(([, sock]) => sock.sendBytes(buffer));
+                    Object.entries(rooms[room]).forEach(([, sock]) => {
+                        sock.sendBytes(buffer)
+                     });
 
                     // cdp event end game
-                    let rank = -1;
+                    
                     let sortPlayers =  players.sort((a,b)=> b.timeWin - a.timeWin);
                     for (let index = 0; index < sortPlayers.length; index++) {
-                        if(sortPlayers[index].id === clientId && sortPlayers[index].timeWin > 0){
+
+                        let player = sortPlayers[index];
+                        let rank = -1;
+                        let status = "die";
+                        if(player.timeWin > 0){
                             rank = index + 1;
-                        }                        
-                    }
-                    // console.log ("sortPlayers ===  " , sortPlayers)
-                    // console.log ("rank ===  " , rank)
-                    
-                    let player = rooms[room][clientId]["player"];
-                    let _state = {
-                        user : {
-                            userAppId : player.userAppId,
-                            userName : player.playerName,
-                            userPhone : player.phoneNumber,
-                            userAvatar : player.avatar,
-                            followedOA : player.followedOA == "0" ? false : true,
+                            status = "won";
+                        }            
+
+                        let _state = {
+                            user : {
+                                userAppId : player.userAppId,
+                                userName : player.playerName,
+                                userPhone : player.phoneNumber,
+                                userAvatar : player.avatar,
+                                followedOA : player.followedOA == "0" ? false : true,
+                            }
                         }
+                        let _data = {
+                            event : "endGame",
+                            eventState : {
+                                endGame : true,
+                                userStatus : status,
+                                userRank : rank,
+                                timerWin : player.timeWin,
+                                roomID : room,
+                            },
+                            userEvent : "UserEvent"
+                        }
+                        console.log("_data =====  " , _data)
+                        ingestCDP(_state, _data);
                     }
-                    let _data = {
-                        event : "endGame",
-                        eventState : {
-                            endGame : true,
-                            userRank : rank,
-                            timerWin : player.timeWin
-                        },
-                        userEvent : "UserEvent"
-                    }
-                    ingestCDP(_state, _data);
+
                 }
                 else if(meta === "leave") {
     
